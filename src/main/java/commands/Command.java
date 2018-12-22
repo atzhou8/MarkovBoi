@@ -8,6 +8,7 @@ public abstract class Command extends ListenerAdapter {
 
     private static final String PREFIX = "!";
     public String commandName;
+    public String helpMessage;
     public abstract void executeCommand(MessageReceivedEvent event, String[] args);
 
     @Override
@@ -25,6 +26,10 @@ public abstract class Command extends ListenerAdapter {
 
     protected boolean containsCommand(String[] args) {
         return args[0].equals(PREFIX + commandName);
+    }
+
+    protected void sendHelpMessage(MessageReceivedEvent event) {
+        event.getChannel().sendMessage(helpMessage).queue();
     }
 
 }
