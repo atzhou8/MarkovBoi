@@ -2,57 +2,45 @@ package markov;
 
 import org.apache.commons.lang3.ArrayUtils;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 
 public class MarkovChain{
-    private int size;
-    private Map<String, Map<String, Integer>> transitionMatrix;
+    private Map<String, MarkovMatrixRow> transitionMatrix;
     private Random rand;
     private long ID;
 
-    private static final String SAMPLE_SIZE_KEY = "";
+    private static final int GENERATION_MIN_LENGTH = 100;
+    private static final int GENERATION_MAX_LENGTH = 15;
 
     public MarkovChain(long ID) {
-        size = 0;
         transitionMatrix = new HashMap<>();
+        rand = new Random();
         this.ID = ID;
     }
 
     public void add(String s) {
         String[] cleanedString = clean(s);
         for (int pos = 0; pos < cleanedString.length - 1; pos++) {
-            String word = cleanedString[0];
+            String word = cleanedString[pos];
             if (!transitionMatrix.containsKey(word)) {
-                Map<String, Integer> list = new HashMap<>();
+                MarkovMatrixRow row = new MarkovMatrixRow();
                 String next = cleanedString[pos + 1];
-
-                list.put(SAMPLE_SIZE_KEY, 1);
-                list.put(next, 1);
-
-                transitionMatrix.put(word, list);
+                row.add(next);
+                transitionMatrix.put(word, row);
             } else {
-                Map<String, Integer> list = transitionMatrix.get(word);
+                MarkovMatrixRow row = transitionMatrix.get(word);
                 String next = cleanedString[pos + 1];
-
-                list.replace(SAMPLE_SIZE_KEY, list.get(SAMPLE_SIZE_KEY) + 1);
-                if (list.containsKey(next)) {
-                    list.replace(next, list.get(next) + 1);
-                } else {
-                    list.put(next, 1);
-                }
+                row.add(next);
             }
-
         }
-
     }
+
 
     /* Removes capital letters from beginning of sentence
      * and splits into words and punctuation.
      */
-    public String[] clean(String m) {
+    private String[] clean(String m) {
         StringBuilder s = new StringBuilder(m);
         boolean isLowerCase = true;
         char[] punctuation = {'!', '.', '?'};
@@ -71,6 +59,68 @@ public class MarkovChain{
 
     }
 
+    public String simulate() {
+        int length = randLength();
+        String start = randStart();
+
+        return simulate(length, start);
+    }
+
+    public String simulate(int length) {
+        String start = randStart();
+        return simulate(length, start);
+    }
+
+    public String simulate(String start) {
+        int length = randLength();
+        return simulate(length, start);
+    }
+
+    public String simulate(int length, String start) {
+        int count = 1;
+        StringBuilder s = new StringBuilder(start.substring(0, 1).toUpperCase()
+                + start.substring(1)); //StringBuilder beginning with capitalized starting string
+        String next = getTransitionMatrix().get(start).nextWord();
+
+        while (count < length && next != null) {
+            if (next.equals(".") || next.equals("?") || next.equals(";")
+                    || next.equals("!") || next.equals(",")) {
+                s.append(next);
+            } else {
+                s.append(" " + next);
+            }
+
+
+            MarkovMatrixRow row = getTransitionMatrix().get(next);
+            if (row != null) {
+                next = row.nextWord();
+            } else {
+                next = null;
+            }
+            count++;
+        }
+        return s.toString();
+    }
+
+    private String randStart() {
+        List<String> keyList = new ArrayList();
+        keyList.addAll(getTransitionMatrix().keySet());
+
+        return keyList.get(rand.nextInt(keyList.size()));
+    }
+
+    private int randLength() {
+        return rand.nextInt(GENERATION_MAX_LENGTH) + GENERATION_MIN_LENGTH;
+    }
+
+
+    public Map<String, MarkovMatrixRow> getTransitionMatrix() {
+        return transitionMatrix;
+    }
+
+    public long getID() {
+        return ID;
+    }
 }
 
 
