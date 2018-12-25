@@ -2,47 +2,47 @@ package markov;
 
 import java.util.*;
 
-public class MarkovMatrixRow {
-    private Map<String, Integer> samples;
-    private Map<String, Double> probabilities;
+public class MarkovMatrixRow<K> {
+    private Map<K, Integer> counts;
+    private Map<K, Double> probabilities;
     private Random random = new Random();
-    private static final String TOTAL_KEY = "";
+    private int totalSamples;
 
 
     public MarkovMatrixRow(){
-        samples = new HashMap<>();
+        counts = new HashMap<>();
         probabilities = new HashMap<>();
-        samples.put(TOTAL_KEY, 0);
+        totalSamples = 0;
     }
 
-    public void add(String string) {
-        /* update samples */
-        samples.replace(TOTAL_KEY, numSamples() + 1);
-        if (samples.containsKey(string)) {
-            samples.replace(string, getNextWordSamples(string) + 1);
+    public void add(K key) {
+        /* update counts */
+        totalSamples++;
+        if (counts.containsKey(key)) {
+            counts.replace(key, getNextWordSamples(key) + 1);
         } else {
-            samples.put(string, 1);
+            counts.put(key, 1);
         }
 
-        /* update probabilities based on samples */
-        probabilities.put(string, (double) samples.get(string) / numSamples());
+        /* update probabilities based on counts */
+        probabilities.put(key, (double) counts.get(key) / getTotalSamples());
         updateProbabilities();
     }
 
     public void updateProbabilities() {
-        for (String s : keySet()) {
-            probabilities.put(s, (double) getNextWordSamples(s) / numSamples());
+        for (K key : keySet()) {
+            probabilities.put(key, (double) getNextWordSamples(key) / getTotalSamples());
         }
     }
 
-    public String nextWord() {
-        Map<String, Double> ranges = uniformRanges();
+    public K nextKey() {
+        Map<K, Double> ranges = uniformRanges();
         double r = random.nextDouble();
 
 
-        String curr = null;
-        for (String s: keySet()) {
-            curr = s;
+        K curr = null;
+        for (K entry : keySet()) {
+            curr = entry;
             if (ranges.get(curr) >= r)
                 break;
         }
@@ -50,40 +50,38 @@ public class MarkovMatrixRow {
     }
 
     /* sums up the next state probabilities so that we can simulate using the uniform dist. */
-    private Map<String, Double> uniformRanges() {
-        Map<String, Double> uProbabilities = new TreeMap<>();
+    private Map<K, Double> uniformRanges() {
+        Map<K, Double> uProbabilities = new HashMap<>();
         double cumulation = 0;
-        for (String s : keySet()) {
-            cumulation += getNextWordProbabilities(s);
-            uProbabilities.put(s, cumulation);
+        for (K key : keySet()) {
+            cumulation += getNextWordProbabilities(key);
+            uProbabilities.put(key, cumulation);
         }
 
         return uProbabilities;
     }
 
-    public boolean contains(String string) {
-        return samples.containsKey(string);
+    public boolean contains(K key) {
+        return counts.containsKey(key);
     }
 
-    public int getNextWordSamples(String string) {
-        return samples.get(string);
+    public int getNextWordSamples(K key) {
+        return counts.get(key);
     }
 
-    public double getNextWordProbabilities(String string) {
-        return probabilities.get(string);
+    public double getNextWordProbabilities(K key) {
+        return probabilities.get(key);
     }
 
-    public Set<String> keySet() {
+    public Set<K> keySet() {
         return probabilities.keySet();
     }
 
-    public int numStates() {
+    public int getTotalStates() {
         return probabilities.size() - 1;
     }
 
-    public int numSamples() {
-        return samples.get(TOTAL_KEY);
+    public int getTotalSamples() {
+        return totalSamples;
     }
-
-
 }
