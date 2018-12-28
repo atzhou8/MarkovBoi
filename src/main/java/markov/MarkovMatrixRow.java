@@ -1,12 +1,16 @@
 package markov;
 
+import java.io.Serializable;
 import java.util.*;
 
-public class MarkovMatrixRow<K> {
+public class MarkovMatrixRow<K> implements Serializable {
     private Map<K, Integer> counts;
     private Map<K, Double> probabilities;
     private Random random = new Random();
     private int totalSamples;
+
+    private static final long serialVersionUID = 2L;
+
 
 
     public MarkovMatrixRow(){
@@ -25,8 +29,8 @@ public class MarkovMatrixRow<K> {
         }
 
         /* update probabilities based on counts */
-        probabilities.put(key, (double) counts.get(key) / getTotalSamples());
-        updateProbabilities();
+//        probabilities.put(key, (double) counts.get(key) / getTotalSamples());
+//        updateProbabilities();
     }
 
     public void updateProbabilities() {
@@ -36,6 +40,7 @@ public class MarkovMatrixRow<K> {
     }
 
     public K nextKey() {
+        updateProbabilities();
         Map<K, Double> ranges = uniformRanges();
         double r = random.nextDouble();
 
@@ -74,12 +79,9 @@ public class MarkovMatrixRow<K> {
     }
 
     public Set<K> keySet() {
-        return probabilities.keySet();
+        return counts.keySet();
     }
 
-    public int getTotalStates() {
-        return probabilities.size() - 1;
-    }
 
     public int getTotalSamples() {
         return totalSamples;

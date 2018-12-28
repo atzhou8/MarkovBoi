@@ -63,10 +63,10 @@ set CMD_LINE_ARGS=%*
 :execute
 @rem Setup the command line
 
-set CLASSPATH=%APP_HOME%\lib\markov-bot-1.0.jar;%APP_HOME%\lib\JDA-3.8.1_448.jar;%APP_HOME%\lib\jsr305-3.0.2.jar;%APP_HOME%\lib\annotations-16.0.1.jar;%APP_HOME%\lib\slf4j-api-1.7.25.jar;%APP_HOME%\lib\nv-websocket-client-2.5.jar;%APP_HOME%\lib\okhttp-3.12.0.jar;%APP_HOME%\lib\opus-java-1.0.4.pom;%APP_HOME%\lib\commons-collections4-4.1.jar;%APP_HOME%\lib\json-20160810.jar;%APP_HOME%\lib\trove4j-3.0.3.jar;%APP_HOME%\lib\okio-1.15.0.jar;%APP_HOME%\lib\opus-java-api-1.0.4.jar;%APP_HOME%\lib\opus-java-natives-1.0.4.jar;%APP_HOME%\lib\jna-4.4.0.jar
+set CLASSPATH=%APP_HOME%\lib\markov-bot-1.0.jar;%APP_HOME%\lib\JDA-3.8.1_448.jar;%APP_HOME%\lib\commons-validator-1.4.0.jar;%APP_HOME%\lib\commons-lang3-3.6.jar;%APP_HOME%\lib\jsr305-3.0.2.jar;%APP_HOME%\lib\annotations-16.0.1.jar;%APP_HOME%\lib\slf4j-api-1.7.25.jar;%APP_HOME%\lib\nv-websocket-client-2.5.jar;%APP_HOME%\lib\okhttp-3.12.0.jar;%APP_HOME%\lib\opus-java-1.0.4.pom;%APP_HOME%\lib\commons-collections4-4.1.jar;%APP_HOME%\lib\json-20160810.jar;%APP_HOME%\lib\trove4j-3.0.3.jar;%APP_HOME%\lib\commons-beanutils-1.8.3.jar;%APP_HOME%\lib\commons-digester-1.8.jar;%APP_HOME%\lib\commons-logging-1.1.1.jar;%APP_HOME%\lib\okio-1.15.0.jar;%APP_HOME%\lib\opus-java-api-1.0.4.jar;%APP_HOME%\lib\opus-java-natives-1.0.4.jar;%APP_HOME%\lib\jna-4.4.0.jar
 
 @rem Execute markov-bot
-"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %MARKOV_BOT_OPTS%  -classpath "%CLASSPATH%" com.example.jda.Bot %CMD_LINE_ARGS%
+"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %MARKOV_BOT_OPTS%  -classpath "%CLASSPATH%" bot.Bot %CMD_LINE_ARGS%
 
 :end
 @rem End local scope for the variables with windows NT shell
