@@ -1,6 +1,6 @@
 package bot;
 
-import commands.MarkovCommand;
+import commands.SimulateCommand;
 import commands.ReadCommand;
 import commands.PingCommand;
 import events.MessageReceivedEvent;
@@ -13,12 +13,14 @@ import net.dv8tion.jda.core.entities.Message;
 
 import javax.security.auth.login.LoginException;
 import java.io.*;
+import java.net.URL;
 import java.util.*;
 
 public class Bot {
 
     private static transient JDA jda;
     private static Map<String , MarkovChain> markovChainList;
+    private static Map<String, String> defaultDataPictures;
 
 
     private static final String[] DEFAULT_DATA_ID_ARRAY = {"marx", "plato"};
@@ -28,6 +30,7 @@ public class Bot {
         load();
         addCommands();
         addEvents();
+        loadPictures();
     }
 
     public static void save() {
@@ -86,12 +89,13 @@ public class Bot {
         }
 
         markovChainList = new HashMap<>();
+        defaultDataPictures = new HashMap<>();
     }
 
     private static void addCommands() {
         jda.addEventListener(new PingCommand());
         jda.addEventListener(new ReadCommand());
-        jda.addEventListener(new MarkovCommand());
+        jda.addEventListener(new SimulateCommand());
     }
 
     private static void addEvents() {
@@ -109,8 +113,19 @@ public class Bot {
         addNewChain("master");
     }
 
+    private static void loadPictures() {
+        defaultDataPictures.put("marx",
+                "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Karl_Marx_001.jpg/220px-Karl_Marx_001.jpg");
+        defaultDataPictures.put("plato",
+                "https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Plato_Silanion_Musei_Capitolini_MC1377.jpg/220px-Plato_Silanion_Musei_Capitolini_MC1377.jpg");
+    }
+
     private static String idToFileName(String s) {
         return "data/" + s + ".txt";
+    }
+
+    public static String getDefaultPicture(String id) {
+        return defaultDataPictures.get(id);
     }
 
     public static Set<String> getStoredIDs() {

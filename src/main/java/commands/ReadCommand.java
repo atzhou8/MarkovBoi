@@ -21,9 +21,8 @@ public class ReadCommand extends Command{
         int count = 0;
         for (Message message: ((TextChannel) channel).getIterableHistory()) {
             if (!message.getAuthor().isBot()
-                    && message.getContentStripped().split(" ").length >= 3) {
+                    && message.getContentStripped().split(" ").length >= 4) {
                 Bot.readMessage(message.getAuthor().getId(), message);
-//                System.out.println("Read new message!");
                 count++;
             }
         }

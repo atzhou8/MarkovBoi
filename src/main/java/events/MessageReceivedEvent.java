@@ -17,9 +17,10 @@ public class MessageReceivedEvent extends ListenerAdapter {
             Bot.readMessage(id, message);
             Bot.save();
             System.out.println("Read new message!");
-            System.out.println("Stripped:" + message.getContentStripped());
-            System.out.println("Raw:" + message.getContentRaw());
-            System.out.println("Display" + message.getContentDisplay());
+            System.out.println("Stripped Message: " + message.getContentStripped());
+            System.out.println("Raw Message: " + message.getContentRaw());
+            System.out.println("Display Message: " + message.getContentDisplay());
+            System.out.println("Avatar URL: " + message.getAuthor().getAvatarUrl());
         }
     }
 }

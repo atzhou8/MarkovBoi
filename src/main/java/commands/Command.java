@@ -1,13 +1,16 @@
 package commands;
 
+import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
+
+import java.awt.*;
 
 public abstract class Command extends ListenerAdapter {
 
     private static final String PREFIX = "!";
     public String commandName;
-    public String helpMessage;
+    public String usageMessage;
 
     public abstract void executeCommand(MessageReceivedEvent event, String[] args);
 
@@ -29,8 +32,14 @@ public abstract class Command extends ListenerAdapter {
         return args[0].equals(PREFIX + commandName);
     }
 
-    protected void sendHelpMessage(MessageReceivedEvent event) {
-        event.getChannel().sendMessage(helpMessage).queue();
+    protected void sendUsageMessage(MessageReceivedEvent event) {
+        EmbedBuilder eb = new EmbedBuilder();
+        eb.setColor(Color.GREEN)
+                .setTitle("Usage of " + commandName + ":")
+                .setDescription("() - Required, [] - Optional")
+                .addField(usageMessage, "", false);
+
+        event.getChannel().sendMessage(eb.build()).queue();
     }
 
 }

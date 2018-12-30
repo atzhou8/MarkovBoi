@@ -30,7 +30,7 @@ public class TestMarkovChain {
 //        assertArrayEquals(cleanedMessageC, mc.clean(messageC));
 //        assertArrayEquals(cleanedMessageD, mc.clean(messageD));
 
-        for (String s: mc.clean("Check this out!: youtube.com")) {
+        for(String s: MarkovUtils.clean("sure. i wrote it when i was a freshman, still works well. it stays on the registration page (https://sdb.admin.uw.edu/students/uwnetid/register.asp) and registers for classes as soon as it's told to. it will automatically drop any conflicting classes, so swapping quiz sections, lectures, or even entire classes is possible.\n")) {
             System.out.println(s);
         }
 
