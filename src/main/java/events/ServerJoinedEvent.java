@@ -12,11 +12,11 @@ public class ServerJoinedEvent extends ListenerAdapter {
     @Override
     public void onGuildJoin(GuildJoinEvent event) {
         System.out.println("Joined new server!");
-        Bot.addNewChain(event.getGuild().getId());
+        Bot.createNewChain(event.getGuild().getId());
 
         List<Member> memberList = event.getGuild().getMembers();
         for (Member member: memberList) {
-            Bot.addNewChain(member.getUser().getId());
+            Bot.createNewChain(member.getUser().getId());
         }
     }
 }

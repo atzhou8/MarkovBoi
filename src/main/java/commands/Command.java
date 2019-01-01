@@ -9,19 +9,36 @@ import java.awt.*;
 public abstract class Command extends ListenerAdapter {
 
     private static final String PREFIX = "!";
-    public String commandName;
-    public String usageMessage;
+    protected String commandName;
+    protected String helpMessage;
+    protected String usageMessage;
 
     public abstract void executeCommand(MessageReceivedEvent event, String[] args);
 
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
         String[] commandArgs = getCommandArgs(event);
-        if (containsCommand(commandArgs)){
+        if (containsCommand(commandArgs)) {
             System.out.println("Executing " + commandName);
             executeCommand(event, commandArgs);
             System.out.println("Command executed correctly!");
         }
+    }
+
+    public String getCommandName() {
+        return commandName;
+    }
+
+    public String getUsageMessage() {
+        return usageMessage;
+    }
+
+    public String getHelpMessage() {
+        return helpMessage;
+    }
+
+    public String getPrefix() {
+        return PREFIX;
     }
 
     protected String[] getCommandArgs(MessageReceivedEvent m) {
@@ -35,9 +52,10 @@ public abstract class Command extends ListenerAdapter {
     protected void sendUsageMessage(MessageReceivedEvent event) {
         EmbedBuilder eb = new EmbedBuilder();
         eb.setColor(Color.GREEN)
-                .setTitle("Usage of " + commandName + ":")
-                .setDescription("() - Required, [] - Optional")
-                .addField(usageMessage, "", false);
+                .setTitle(commandName)
+                .setDescription(getHelpMessage())
+                .addField("Usage:", getUsageMessage(), false)
+                .setFooter("() - Required, [] - Optional", null);
 
         event.getChannel().sendMessage(eb.build()).queue();
     }

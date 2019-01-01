@@ -11,9 +11,7 @@ public class MarkovMatrixRow<K> implements Serializable {
 
     private static final long serialVersionUID = 2L;
 
-
-
-    public MarkovMatrixRow(){
+    public MarkovMatrixRow() {
         counts = new HashMap<>();
         probabilities = new HashMap<>();
         totalSamples = 0;
@@ -22,15 +20,12 @@ public class MarkovMatrixRow<K> implements Serializable {
     public void add(K key) {
         /* update counts */
         totalSamples++;
+        /* adds the key */
         if (counts.containsKey(key)) {
             counts.replace(key, getNextWordSamples(key) + 1);
         } else {
             counts.put(key, 1);
         }
-
-        /* update probabilities based on counts */
-//        probabilities.put(key, (double) counts.get(key) / getTotalSamples());
-//        updateProbabilities();
     }
 
     public void updateProbabilities() {
@@ -44,17 +39,18 @@ public class MarkovMatrixRow<K> implements Serializable {
         Map<K, Double> ranges = uniformRanges();
         double r = random.nextDouble();
 
-
         K curr = null;
         for (K entry : keySet()) {
             curr = entry;
-            if (ranges.get(curr) >= r)
+            if (ranges.get(curr) >= r) {
                 break;
+            }
         }
         return curr;
     }
 
-    /* sums up the next state probabilities so that we can simulate using the uniform dist. */
+    /* Sums up the next state probabilities so that we can simulate using the uniform dist.
+     * from Random.nextDouble */
     private Map<K, Double> uniformRanges() {
         Map<K, Double> uProbabilities = new HashMap<>();
         double cumulation = 0;
@@ -81,7 +77,6 @@ public class MarkovMatrixRow<K> implements Serializable {
     public Set<K> keySet() {
         return counts.keySet();
     }
-
 
     public int getTotalSamples() {
         return totalSamples;

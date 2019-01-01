@@ -10,7 +10,6 @@ import java.util.*;
 public class MarkovChain implements Serializable {
     private Map<MarkovKey, MarkovMatrixRow<String>> transitionMatrix;
     private MarkovMatrixRow<MarkovKey> initialDist;
-    private Set<String> wordsSeen;
     private int order;
     private boolean capitalizeNext;
     private Random random;
@@ -18,19 +17,18 @@ public class MarkovChain implements Serializable {
 
     private static final int GENERATION_LENGTH_MIN = 8;
     private static final int GENERATION_LENGTH_VARIANCE = 3;
-    private static final long serialVersionUID = 123123123123123123L;
+    private static final long serialVersionUID = 3L;
 
-    public MarkovChain(int order, String ID) {
+    public MarkovChain(int order, String id) {
         if (order < 1) {
             throw new IllegalArgumentException("Markov chain must be of at least order one!");
         }
 
         transitionMatrix = new HashMap<>();
-        wordsSeen = new HashSet<>();
         initialDist = new MarkovMatrixRow<>();
         capitalizeNext = true;
         this.order = order;
-        this.ID = ID;
+        this.ID = id;
 
         random = new Random();
     }
@@ -49,7 +47,8 @@ public class MarkovChain implements Serializable {
     public void readString(String s) {
         List<String> cleanedString = MarkovUtils.clean(s);
 
-        if (cleanedString.size() <= order) {
+        if (cleanedString.size() <= order
+                || MarkovUtils.isPunct(Character.toString(cleanedString.get(0).charAt(0)))) {
             return;
         }
 
@@ -91,7 +90,6 @@ public class MarkovChain implements Serializable {
         }
     }
 
-
     /* Simulates words from chain */
     public String simulate() {
         int length = randLength();
@@ -126,8 +124,8 @@ public class MarkovChain implements Serializable {
             StringBuilder sb = new StringBuilder(MarkovUtils.keyToStringHelper(this, initial, length));
             String next = "";
 
-            while (length - curr.getOrder() > 0 ||
-                    (length - curr.getOrder() <= 0 && !MarkovUtils.isEndPunct(next))) {
+            while (length - curr.getOrder() > 0
+                    || (length - curr.getOrder() <= 0 && !MarkovUtils.isEndPunct(next))) {
                 MarkovMatrixRow<String> nextRow = getTransitionMatrix().get(curr);
                 /* ends string construction upon reaching an end state or loop */
                 if (nextRow == null) {
@@ -160,12 +158,10 @@ public class MarkovChain implements Serializable {
         return random.nextInt(GENERATION_LENGTH_VARIANCE) + GENERATION_LENGTH_MIN;
     }
 
-    /* Returns transition matrix*/
     public Map<MarkovKey, MarkovMatrixRow<String>> getTransitionMatrix() {
         return transitionMatrix;
     }
 
-    /* Returns id */
     public String getID() {
         return ID;
     }

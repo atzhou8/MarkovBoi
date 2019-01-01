@@ -1,7 +1,5 @@
 package markov;
 
-import org.omg.PortableServer.ServantActivator;
-
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Deque;
@@ -49,7 +47,6 @@ public class MarkovKey implements Serializable {
         markovKey.getWords().toArray(arr2);
 
         return Arrays.equals(arr1, arr2);
-
     }
 
     @Override

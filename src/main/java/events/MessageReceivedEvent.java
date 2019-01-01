@@ -8,19 +8,12 @@ public class MessageReceivedEvent extends ListenerAdapter {
 
     @Override
     public void onMessageReceived(net.dv8tion.jda.core.events.message.MessageReceivedEvent event) {
-        if(!event.getAuthor().isBot()
-                && event.getMessage().getContentStripped().split(" ").length >= 3
-                && Character.isLetter(event.getMessage().getContentStripped().charAt(0))) {
+        if (!event.getAuthor().isBot()) {
             String id = event.getAuthor().getId();
             Message message = event.getMessage();
 
             Bot.readMessage(id, message);
             Bot.save();
-            System.out.println("Read new message!");
-            System.out.println("Stripped Message: " + message.getContentStripped());
-            System.out.println("Raw Message: " + message.getContentRaw());
-            System.out.println("Display Message: " + message.getContentDisplay());
-            System.out.println("Avatar URL: " + message.getAuthor().getAvatarUrl());
         }
     }
 }

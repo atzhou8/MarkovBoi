@@ -1,12 +1,8 @@
 package markov;
 
 import org.apache.commons.lang3.ArrayUtils;
-import org.nibor.autolink.LinkExtractor;
-import org.nibor.autolink.LinkType;
 
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class MarkovUtils {
     private static Random random = new Random();
@@ -72,7 +68,7 @@ public class MarkovUtils {
         s = s.toLowerCase();
 
         for (MarkovKey k: mc.getAllKeys()) {
-            if(k.getFirst().equals(s)) {
+            if (k.getFirst().equals(s)) {
                 keyList.add(k);
             }
         }
@@ -133,5 +129,4 @@ public class MarkovUtils {
             return s.toUpperCase();
         }
     }
-
 }
