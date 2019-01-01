@@ -18,9 +18,9 @@ public class TestMarkovChain {
         String[] cleanedMessageC = {"and", "today", "I", "would", "like", "to", "talk",
                                     "to", "you", "about", "China", "."};
 
-        String messageD = "Didn't you know? Ophelia's favorite country is Great Britain.";
+        String messageD = "Didn't you know? Ophelia's favorite country is Great https://github.com/azhou314/MarkovBot.";
         String[] cleanedMessageD = {"didn't", "you", "know", "?", "ophelia's", "favorite", "country",
-                                    "is", "Great", "Britain", "."};
+                                    "is", "Great", "."};
 
 
         assertArrayEquals(cleanedMessageA, MarkovUtils.clean(messageA).toArray());

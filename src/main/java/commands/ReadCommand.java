@@ -10,7 +10,7 @@ public class ReadCommand extends Command {
 
     public ReadCommand() {
         commandName = "read";
-        helpMessage = "Reads all of the messages in the channel you use it in.";
+        helpMessage = "Reads all of the messages in the channel you use it in. (May take a few minutes)";
         usageMessage = getPrefix() + commandName;
     }
 
