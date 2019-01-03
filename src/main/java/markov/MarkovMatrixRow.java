@@ -17,20 +17,24 @@ public class MarkovMatrixRow<K> implements Serializable {
         totalSamples = 0;
     }
 
-    public void add(K key) {
+    public void add (K key, int count) {
         /* update counts */
-        totalSamples++;
+        totalSamples += count;
         /* adds the key */
         if (counts.containsKey(key)) {
-            counts.replace(key, getNextWordSamples(key) + 1);
+            counts.replace(key, getKeyCount(key) + count);
         } else {
-            counts.put(key, 1);
+            counts.put(key, count);
         }
+    }
+
+    public void add(K key) {
+        add(key, 1);
     }
 
     public void updateProbabilities() {
         for (K key : keySet()) {
-            probabilities.put(key, (double) getNextWordSamples(key) / getTotalSamples());
+            probabilities.put(key, (double) getKeyCount(key) / getTotalSamples());
         }
     }
 
@@ -55,7 +59,7 @@ public class MarkovMatrixRow<K> implements Serializable {
         Map<K, Double> uProbabilities = new HashMap<>();
         double cumulation = 0;
         for (K key : keySet()) {
-            cumulation += getNextWordProbabilities(key);
+            cumulation += getKeyProbability(key);
             uProbabilities.put(key, cumulation);
         }
 
@@ -66,11 +70,11 @@ public class MarkovMatrixRow<K> implements Serializable {
         return counts.containsKey(key);
     }
 
-    public int getNextWordSamples(K key) {
+    public int getKeyCount(K key) {
         return counts.get(key);
     }
 
-    public double getNextWordProbabilities(K key) {
+    public double getKeyProbability(K key) {
         return probabilities.get(key);
     }
 

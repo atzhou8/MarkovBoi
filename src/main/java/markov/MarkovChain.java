@@ -15,7 +15,7 @@ public class MarkovChain implements Serializable {
     private Random random;
     private String ID;
 
-    private static final int GENERATION_LENGTH_MIN = 8;
+    private static final int GENERATION_LENGTH_MIN = 10;
     private static final int GENERATION_LENGTH_VARIANCE = 3;
     private static final long serialVersionUID = 3L;
 
@@ -90,6 +90,14 @@ public class MarkovChain implements Serializable {
         }
     }
 
+    public void addRowToMatrix(MarkovKey key, MarkovMatrixRow<String> row) {
+        if (!containsKey(key)) {
+            getTransitionMatrix().put(key, row);
+        } else {
+            throw new IllegalArgumentException("Key already exists in matrix!");
+        }
+    }
+
     /* Simulates words from chain */
     public String simulate() {
         int length = randLength();
@@ -158,8 +166,20 @@ public class MarkovChain implements Serializable {
         return random.nextInt(GENERATION_LENGTH_VARIANCE) + GENERATION_LENGTH_MIN;
     }
 
+    public boolean containsKey (MarkovKey key) {
+        return getTransitionMatrix().containsKey(key);
+    }
+
     public Map<MarkovKey, MarkovMatrixRow<String>> getTransitionMatrix() {
         return transitionMatrix;
+    }
+
+    public int getOrder() {
+        return order;
+    }
+
+    public int getSize() {
+        return getTransitionMatrix().keySet().size();
     }
 
     public String getID() {

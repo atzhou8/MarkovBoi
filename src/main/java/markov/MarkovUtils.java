@@ -129,4 +129,29 @@ public class MarkovUtils {
             return s.toUpperCase();
         }
     }
+
+    /* Combines the data from two Markov Chains */
+    public static MarkovChain combineChains(MarkovChain mc1, MarkovChain mc2) {
+        if (mc1.getOrder() == mc2.getOrder()) {
+            MarkovChain minMC = (mc1.getSize() < mc2.getSize()) ? mc1 : mc2;
+            MarkovChain maxMC = (minMC == mc1) ? mc2 : mc1;
+
+            for (MarkovKey key : minMC.getAllKeys()) {
+                MarkovMatrixRow<String> maxCounts = maxMC.getTransitionMatrix().get(key);
+                MarkovMatrixRow<String> minCounts = minMC.getTransitionMatrix().get(key);
+
+                if (maxMC.containsKey(key)) {
+                    for (String s : minCounts.keySet()) {
+                        maxCounts.add(s, minCounts.getKeyCount(s));
+                    }
+                } else {
+                    maxMC.addRowToMatrix(key, minCounts);
+                }
+            }
+
+            return maxMC;
+        } else {
+            throw new IllegalArgumentException("Markov chains must be of the same order!");
+        }
+    }
 }

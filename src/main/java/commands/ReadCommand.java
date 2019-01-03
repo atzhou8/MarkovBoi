@@ -5,6 +5,7 @@ import net.dv8tion.jda.core.entities.Channel;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
+import threads.ReadChannelThread;
 
 public class ReadCommand extends Command {
 
@@ -16,18 +17,10 @@ public class ReadCommand extends Command {
 
     @Override
     public void executeCommand(MessageReceivedEvent event, String[] args) {
-        event.getChannel();
         Channel channel = event.getTextChannel();
+        ReadChannelThread readChannelThread = new ReadChannelThread(event, channel);
 
-        int count = 0;
-        for (Message message: ((TextChannel) channel).getIterableHistory().cache(false)) {
-            if (!message.getAuthor().isBot()) {
-                Bot.readMessage(message.getAuthor().getId(), message);
-                count++;
-            }
-        }
+        readChannelThread.start();
         Bot.save();
-
-        event.getChannel().sendMessage("Successfully read " + count + " messages!").queue();
     }
 }

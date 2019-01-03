@@ -17,6 +17,7 @@ public class SimulateCommand extends Command {
         commandName = "sim";
         usageMessage = "!sim (id) [starting word] \n\n" +
                 "Default ids are: \n" +
+                "trump\n" +
                 "marx\n" +
                 "plato\n" +
                 "master";

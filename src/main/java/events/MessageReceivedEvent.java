@@ -3,6 +3,7 @@ package events;
 import bot.Bot;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
+import threads.SaveThread;
 
 public class MessageReceivedEvent extends ListenerAdapter {
 
@@ -13,7 +14,7 @@ public class MessageReceivedEvent extends ListenerAdapter {
             Message message = event.getMessage();
 
             Bot.readMessage(id, message);
-            Bot.save();
+            new SaveThread().run();
         }
     }
 }

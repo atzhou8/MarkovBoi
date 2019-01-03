@@ -7,6 +7,7 @@ import markov.MarkovChain;
 import net.dv8tion.jda.core.AccountType;
 import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.JDABuilder;
+import net.dv8tion.jda.core.entities.Game;
 import net.dv8tion.jda.core.entities.Message;
 
 import javax.security.auth.login.LoginException;
@@ -16,13 +17,15 @@ import java.util.*;
 public class Bot {
 
     private static JDA jda;
-    private static Map<String, MarkovChain> markovChainList;
+    private static Map<String, MarkovChain> chains;
     private static Map<String, String> defaultDataPictures;
+    private static List<String> readMessages;
 
-    private static final String[] DEFAULT_DATA_ID_ARRAY = {"marx", "plato"};
+    private static final String[] DEFAULT_DATA_ID_ARRAY = {"marx", "plato", "trump"};
     private static final String[] DEFAULT_DATA_URL_ARRAY =
             {"https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Karl_Marx_001.jpg/220px-Karl_Marx_001.jpg",
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Plato_Silanion_Musei_Capitolini_MC1377.jpg/220px-Plato_Silanion_Musei_Capitolini_MC1377.jpg"};
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Plato_Silanion_Musei_Capitolini_MC1377.jpg/220px-Plato_Silanion_Musei_Capitolini_MC1377.jpg",
+            "https://typeset-beta.imgix.net/lovelace/getty/113257835.jpg"};
     private static final String SAVE_LOCATION = "data/save.txt";
 
     public static void main(String[] args) {
@@ -42,7 +45,7 @@ public class Bot {
                 BufferedInputStream bs = new BufferedInputStream(fs);
                 ObjectInputStream os = new ObjectInputStream(bs);
                 Map<String, MarkovChain> objects = (Map<String, MarkovChain>) os.readObject();
-                markovChainList =  objects;
+                chains =  objects;
             } catch (FileNotFoundException e) {
                 System.out.println("file not found");
                 System.exit(0);
@@ -53,9 +56,10 @@ public class Bot {
                 System.out.println("class not found");
                 System.exit(0);
             }
+            loadDefaultData();
         } else {
             System.out.println("Save not found");
-            loadDefaultData();
+            createNewChain("master");
         }
     }
 
@@ -68,17 +72,18 @@ public class Bot {
             e.printStackTrace();
         }
 
-        markovChainList = new HashMap<>();
+        jda.getPresence().setGame(Game.watching("Type !help to see commands!"));
+        chains = new HashMap<>();
         defaultDataPictures = new HashMap<>();
+        readMessages = new ArrayList();
     }
 
     private static void loadDefaultData() {
         for (String id : DEFAULT_DATA_ID_ARRAY) {
             createNewChain(id);
-            markovChainList.get(id).readFile(idToFileName(id));
+            chains.get(id).readFile(idToFileName(id));
         }
 
-        createNewChain("master");
     }
 
     private static void addCommands() {
@@ -119,39 +124,50 @@ public class Bot {
         return defaultDataPictures.get(id);
     }
 
+    /* Gets the map containing all Markov Chains */
+    public static Map<String, MarkovChain> getChains() {
+        return chains;
+    }
+
     /* Gets a list of all users that have a chain associated with them */
     public static Set<String> getStoredIDs() {
-        return markovChainList.keySet();
+        return chains.keySet();
     }
 
     /* Gets the MarkovChain given the id of a user*/
     public static MarkovChain getChainForID(String id) {
-        if (!markovChainList.keySet().contains(id)) {
+        if (!chains.keySet().contains(id)) {
             createNewChain(id);
             System.out.println("ID not found! Creating new Markov Chain for new user");
         }
 
-        return markovChainList.get(id);
+        return chains.get(id);
     }
 
     /* Gets the master Markov chain for all users */
     public static MarkovChain getMasterChain() {
-        return markovChainList.get("master");
+        return chains.get("master");
     }
 
     /* Creates a new Markov chain */
     public static void createNewChain(String id) {
-        if (!markovChainList.keySet().contains(id)) {
-            markovChainList.put(id, new MarkovChain(2, id));
+        if (!chains.keySet().contains(id)) {
+            chains.put(id, new MarkovChain(2, id));
         }
     }
 
     /* Reads a Message and encodes the data into the relevant chains */
     public static void readMessage(String id, Message m) {
-        String message = m.getContentStripped();
+        String messageID = m.getId();
+        if (!readMessages.contains(messageID)) {
+            String message = m.getContentStripped();
 
-        getChainForID(id).readString(message);
-        getMasterChain().readString(message);
+            getChainForID(id).readString(message);
+            getMasterChain().readString(message);
+            readMessages.add(messageID);
+        } else {
+            return;
+        }
     }
 
     /* Saves all existing Markov chains */
@@ -164,7 +180,7 @@ public class Bot {
             FileOutputStream fs = new FileOutputStream(f);
             BufferedOutputStream bs = new BufferedOutputStream(fs);
             ObjectOutputStream os = new ObjectOutputStream(bs);
-            os.writeObject(markovChainList);
+            os.writeObject(chains);
             os.close();
         } catch (FileNotFoundException e) {
             System.out.println("file not found");
