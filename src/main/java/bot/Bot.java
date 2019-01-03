@@ -91,11 +91,13 @@ public class Bot {
         Command read = new ReadCommand();
         Command sim = new SimulateCommand();
         Command help = new HelpCommand();
+        Command guilds = new GetGuildsCommand();
 
         jda.addEventListener(ping);
         jda.addEventListener(read);
         jda.addEventListener(sim);
         jda.addEventListener(help);
+        jda.addEventListener(guilds);
 
         HelpCommand.addCommand(ping);
         HelpCommand.addCommand(read);
