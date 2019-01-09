@@ -13,8 +13,9 @@ public class MessageReceivedEvent extends ListenerAdapter {
             String id = event.getAuthor().getId();
             Message message = event.getMessage();
 
-            Bot.readMessage(id, message);
-            new SaveThread().run();
+            if (Bot.readMessage(id, message)) {
+                new SaveThread().run();
+            }
         }
     }
 }

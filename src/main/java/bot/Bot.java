@@ -17,10 +17,12 @@ import java.util.*;
 public class Bot {
 
     private static JDA jda;
-    private static Map<String, MarkovChain> chains;
     private static Map<String, String> defaultDataPictures;
+    private static Map<String, MarkovChain> chains;
     private static List<String> readMessages;
+    
 
+    private static final String ID = Config.TEST_TOKEN;
     private static final String[] DEFAULT_DATA_ID_ARRAY = {"marx", "plato", "trump"};
     private static final String[] DEFAULT_DATA_URL_ARRAY =
             {"https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Karl_Marx_001.jpg/220px-Karl_Marx_001.jpg",
@@ -37,15 +39,16 @@ public class Bot {
 
     /* Loads Markov chains from save file if available. Otherwise, initialize chains from default data */
     private static void load() {
-        File f = new File(SAVE_LOCATION);
         initialize();
+        File f = new File(SAVE_LOCATION);
         if (f.exists()) {
             try {
                 FileInputStream fs = new FileInputStream(f);
                 BufferedInputStream bs = new BufferedInputStream(fs);
                 ObjectInputStream os = new ObjectInputStream(bs);
-                Map<String, MarkovChain> objects = (Map<String, MarkovChain>) os.readObject();
-                chains =  objects;
+                Map<String, Object> objects = (Map<String, Object>) os.readObject();
+                chains =  (Map<String, MarkovChain>) objects.get("chains");
+                readMessages = (List<String>) objects.get("readMessages");
             } catch (FileNotFoundException e) {
                 System.out.println("file not found");
                 System.exit(0);
@@ -56,17 +59,17 @@ public class Bot {
                 System.out.println("class not found");
                 System.exit(0);
             }
-            loadDefaultData();
         } else {
             System.out.println("Save not found");
             createNewChain("master");
         }
+        loadDefaultData();
     }
 
     private static void initialize() {
         try {
             jda = new JDABuilder(AccountType.BOT)
-                    .setToken(Config.TOKEN)
+                    .setToken(ID)
                     .build();
         } catch (LoginException e) {
             e.printStackTrace();
@@ -74,8 +77,8 @@ public class Bot {
 
         jda.getPresence().setGame(Game.watching("Type !help to see commands!"));
         chains = new HashMap<>();
-        defaultDataPictures = new HashMap<>();
         readMessages = new ArrayList();
+        defaultDataPictures = new HashMap<>();
     }
 
     private static void loadDefaultData() {
@@ -158,8 +161,9 @@ public class Bot {
         }
     }
 
-    /* Reads a Message and encodes the data into the relevant chains */
-    public static void readMessage(String id, Message m) {
+    /* Reads a Message and encodes the data into the relevant chains.
+     * Returns true if message is processed */
+    public static boolean readMessage(String id, Message m) {
         String messageID = m.getId();
         if (!readMessages.contains(messageID)) {
             String message = m.getContentStripped();
@@ -167,8 +171,9 @@ public class Bot {
             getChainForID(id).readString(message);
             getMasterChain().readString(message);
             readMessages.add(messageID);
+            return true;
         } else {
-            return;
+            return false;
         }
     }
 
@@ -182,7 +187,10 @@ public class Bot {
             FileOutputStream fs = new FileOutputStream(f);
             BufferedOutputStream bs = new BufferedOutputStream(fs);
             ObjectOutputStream os = new ObjectOutputStream(bs);
-            os.writeObject(chains);
+            Map<String, Object> objects = new HashMap<>();
+            objects.put("chains", chains);
+            objects.put("readMessages", readMessages);
+            os.writeObject(objects);
             os.close();
         } catch (FileNotFoundException e) {
             System.out.println("file not found");

@@ -19,8 +19,8 @@ public class ReadChannelThread extends Thread implements Runnable {
     public void run() {
         int count = 0;
         for (Message message: ((TextChannel) channel).getIterableHistory().cache(false)) {
-            if (!message.getAuthor().isBot()) {
-                Bot.readMessage(message.getAuthor().getId(), message);
+            if (!message.getAuthor().isBot()
+                    && Bot.readMessage(message.getAuthor().getId(), message)) {
                 count++;
             }
         }
