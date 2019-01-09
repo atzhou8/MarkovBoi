@@ -20,7 +20,8 @@ public class SimulateCommand extends Command {
                 "trump\n" +
                 "marx\n" +
                 "plato\n" +
-                "master";
+                "master\n\n" +
+                "If you are seeing this message, it may be because your starting word does not exist.";
         helpMessage = "Generates text based on read data";
     }
 

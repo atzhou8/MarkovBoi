@@ -44,37 +44,40 @@ public class MarkovChain implements Serializable {
     }
 
     /* Reads a string and adds data to chain */
-    public void readString(String s) {
+    public boolean readString(String s) {
         List<String> cleanedString = MarkovUtils.clean(s);
 
         if (cleanedString.size() <= order
                 || MarkovUtils.isPunct(Character.toString(cleanedString.get(0).charAt(0)))) {
-            return;
-        }
+            return false;
+        } else {
 
-        Deque<String> curr = new ArrayDeque();
-        boolean isInitial = true;
-        curr.addAll(cleanedString.subList(0, order));
-        MarkovKey key;
-        String next;
+            Deque<String> curr = new ArrayDeque();
+            boolean isInitial = true;
+            curr.addAll(cleanedString.subList(0, order));
+            MarkovKey key;
+            String next;
 
-        for (int pos = 0; pos < cleanedString.size() - order; pos++) {
-            key = new MarkovKey(((ArrayDeque<String>) curr).clone());
-            next = cleanedString.get(pos + order);
+            for (int pos = 0; pos < cleanedString.size() - order; pos++) {
+                key = new MarkovKey(((ArrayDeque<String>) curr).clone());
+                next = cleanedString.get(pos + order);
 
-            if (isInitial && !MarkovUtils.isPunct(key.getFirst())) {
-                initialDist.add(key);
-                isInitial = false;
+                if (isInitial && !MarkovUtils.isPunct(key.getFirst())) {
+                    initialDist.add(key);
+                    isInitial = false;
+                }
+
+                if (MarkovUtils.isEndPunct(key.getLast())) {
+                    isInitial = true;
+                }
+
+
+                addToMatrix(key, next);
+                curr.add(next);
+                curr.removeFirst();
             }
 
-            if (MarkovUtils.isEndPunct(key.getLast())) {
-                isInitial = true;
-            }
-
-
-            addToMatrix(key, next);
-            curr.add(next);
-            curr.removeFirst();
+            return true;
         }
     }
 

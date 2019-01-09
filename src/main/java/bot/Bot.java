@@ -166,12 +166,11 @@ public class Bot {
     public static boolean readMessage(String id, Message m) {
         String messageID = m.getId();
         if (!readMessages.contains(messageID)) {
+            readMessages.add(messageID);
             String message = m.getContentStripped();
 
-            getChainForID(id).readString(message);
-            getMasterChain().readString(message);
-            readMessages.add(messageID);
-            return true;
+            return getChainForID(id).readString(message)
+                    && getMasterChain().readString(message);
         } else {
             return false;
         }
