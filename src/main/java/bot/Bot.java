@@ -187,8 +187,8 @@ public class Bot {
             BufferedOutputStream bs = new BufferedOutputStream(fs);
             ObjectOutputStream os = new ObjectOutputStream(bs);
             Map<String, Object> objects = new HashMap<>();
-            objects.put("chains", chains);
-            objects.put("readMessages", readMessages);
+            objects.put("chains", ((HashMap) chains).clone());
+            objects.put("readMessages", ((ArrayList) readMessages).clone());
             os.writeObject(objects);
             os.close();
         } catch (FileNotFoundException e) {
