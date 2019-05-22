@@ -9,6 +9,8 @@ import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.JDABuilder;
 import net.dv8tion.jda.core.entities.Game;
 import net.dv8tion.jda.core.entities.Message;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 
 import javax.security.auth.login.LoginException;
 import java.io.*;
@@ -31,6 +33,7 @@ public class Bot {
     private static final String SAVE_LOCATION = "data/save.txt";
 
     public static void main(String[] args) {
+        GraphDatabaseService graphs = new GraphDatabaseFactory().newEmbeddedDatabase(new File("data/graph"));
         load();
         addCommands();
         addEvents();
