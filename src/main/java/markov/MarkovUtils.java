@@ -44,7 +44,7 @@ public class MarkovUtils {
 
     public static String removeUrl(String str) {
         String regularExpression = "(((http|ftp|https):\\/\\/)?[\\w\\-_]+(\\.[\\w\\-_]+)+([\\w\\-\\.,@?^=%&amp;:/~\\+#]*[\\w\\-\\@?^=%&amp;/~\\+#])?)";
-        return str.replaceAll(regularExpression, "");
+        return str.replaceAll(regularExpression, "").replaceAll("\"", "");
     }
 
     /* Checks if a string is a punctuation mark that ends a sentence */
