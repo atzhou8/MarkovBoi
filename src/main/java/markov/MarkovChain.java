@@ -1,12 +1,10 @@
 package markov;
 
 
-import javax.swing.text.html.HTMLDocument;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.security.cert.TrustAnchor;
 import java.sql.*;
 import java.util.*;
 
@@ -23,6 +21,8 @@ public class MarkovChain {
     private Random random;
 
     public static final String URL = "jdbc:sqlite:data/data.db";
+    private static final int GENERATION_LENGTH_MIN = 20;
+    private static final int GENERATION_LENGTH_VARIANCE = 3;
 
     public MarkovChain(String id) {
         this.id = id;
@@ -53,7 +53,9 @@ public class MarkovChain {
         }
     }
 
-    public String simulate(String s, int length) {
+    /* Simulates words from chain */
+    public String simulate() {
+        int length = randLength();
         try {
             Connection connection = DriverManager.getConnection(URL);
             PreparedStatement select = connection.prepareStatement(this.selectTransitionStatement);
@@ -61,7 +63,7 @@ public class MarkovChain {
             String res = "";
             String next = "";
 
-            Deque<String> curr = getStartFromString(s, connection);
+            Deque<String> curr = getStartState(connection);
             res += MarkovUtils.stateToStringHelper(this, curr);
             while (length - 2 > 0
                     || (length - 2 <= 0 && !MarkovUtils.isEndPunct(next))) {
@@ -84,6 +86,111 @@ public class MarkovChain {
         }
 
         return null;
+    }
+
+    public String simulate(String s, int length) {
+        try {
+            Connection connection = DriverManager.getConnection(URL);
+            PreparedStatement select = connection.prepareStatement(this.selectTransitionStatement);
+            PreparedStatement sum = connection.prepareStatement(this.sumTransitionStatement);
+            String res = "";
+            String next = "";
+
+            Deque<String> curr = getStartState(s, connection);
+            res += MarkovUtils.stateToStringHelper(this, curr);
+            while (length - 2 > 0
+                    || (length - 2 <= 0 && !MarkovUtils.isEndPunct(next))) {
+
+                curr = getNextState(curr, connection, select, sum);
+
+                if (curr == null || length < -20 && !MarkovUtils.isEndPunct(curr.getLast())) {
+                    res+= ".";
+                    break;
+                }
+                next = curr.getLast();
+                res += MarkovUtils.grammarHelper(this, next);
+                length--;
+            }
+            connection.close();
+            setCapitalizeNext(true);
+            return res;
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+
+        return null;
+    }
+
+    private Deque<String> getStartState(Connection connection) {
+        try {
+            /* queries database for valid initial states */
+            String q1 = "SELECT * FROM " + initialTable + ";";
+            String q2 = "SELECT SUM(count) FROM " + initialTable + ";";
+            PreparedStatement select = connection.prepareStatement(q1);
+            PreparedStatement sum = connection.prepareStatement(q2);
+
+            /* walks through queried data and picks an entry with corresponding probability */
+            int total = sum.executeQuery().getInt(1);
+            if (total <= 0) {
+                throw new IllegalArgumentException("Not enough data for simulation. Please try something else!");
+            } else {
+                ResultSet rs = select.executeQuery();
+                double seed = random.nextDouble();
+                double cum = 0;
+                Deque<String> result = new ArrayDeque<>();
+                while (rs.next()) {
+                    cum += (double) (rs.getInt("count")) / (double) total;
+                    if (seed <= cum) {
+                        result.addFirst(rs.getString("word1"));
+                        result.addLast(rs.getString("word2"));
+                        return result;
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+
+        return null;
+    }
+
+    /* Helper method to find an initial state given a starting word*/
+    private Deque<String> getStartState(String s, Connection connection) {
+        try {
+            /* queries database for valid initial states */
+            s = s.toLowerCase();
+            String q1 = "SELECT * FROM " + initialTable + " \n" +
+                    "WHERE word1 = ?;";
+            String q2 = "SELECT SUM(count) FROM " + initialTable + " \n" +
+                    "WHERE word1 = ?";
+            PreparedStatement select = connection.prepareStatement(q1);
+            PreparedStatement sum = connection.prepareStatement(q2);
+            select.setString(1, s);
+            sum.setString(1, s);
+
+            /* walks through queried data and picks an entry with corresponding probability */
+            int total = sum.executeQuery().getInt(1);
+            if (total <= 0) {
+                throw new IllegalArgumentException("Not enough data for starting string. Please try something else!");
+            } else {
+                ResultSet rs = select.executeQuery();
+                double seed = random.nextDouble();
+                double cum = 0;
+                Deque<String> result = new ArrayDeque<>();
+                while (rs.next()) {
+                    cum += (double) (rs.getInt("count")) / (double)total;
+                    if (seed <= cum) {
+                        result.addFirst(rs.getString("word1"));
+                        result.addLast(rs.getString("word2"));
+                        return result;
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+
+        throw new IllegalArgumentException("Error occured for starting string. Please try something else!");
     }
 
 
@@ -122,44 +229,7 @@ public class MarkovChain {
         throw new IllegalArgumentException("Error occured for starting string. Please try something else!");
     }
 
-    /* Helper method to find an initial state given a starting word*/
-    private Deque<String> getStartFromString(String s, Connection connection) {
-        try {
-            /* queries database for valid initial states */
-            s = s.toLowerCase();
-            String q1 = "SELECT * FROM " + initialTable + " \n" +
-                            "WHERE word1 = ?;";
-            String q2 = "SELECT SUM(count) FROM " + initialTable + " \n" +
-                            "WHERE word1 = ?";
-            PreparedStatement select = connection.prepareStatement(q1);
-            PreparedStatement sum = connection.prepareStatement(q2);
-            select.setString(1, s);
-            sum.setString(1, s);
 
-            /* walks through queried data and picks an entry with corresponding probability */
-            int total = sum.executeQuery().getInt(1);
-            if (total <= 0) {
-                throw new IllegalArgumentException("Not enough data for starting string. Please try something else!");
-            } else {
-                ResultSet rs = select.executeQuery();
-                double seed = random.nextDouble();
-                double cum = 0;
-                Deque<String> result = new ArrayDeque<>();
-                while (rs.next()) {
-                    cum += (double) (rs.getInt("count")) / (double)total;
-                    if (seed <= cum) {
-                        result.addFirst(rs.getString("word1"));
-                        result.addLast(rs.getString("word2"));
-                        return result;
-                    }
-                }
-            }
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
-        }
-
-        throw new IllegalArgumentException("Error occured for starting string. Please try something else!");
-    }
 
     public void readFile(String fileLocation, Connection connection) {
         try {
@@ -289,4 +359,8 @@ public class MarkovChain {
         return capitalizeNext;
     }
 
+    /* Randomly gets a minimum length */
+    private int randLength() {
+        return random.nextInt(GENERATION_LENGTH_VARIANCE) + GENERATION_LENGTH_MIN;
+    }
 }

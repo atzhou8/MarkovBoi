@@ -35,24 +35,24 @@ public class TestMarkovChain {
 //    }
 
 
-//    @Test
-//    public void testInsert() {
-//        MarkovChain mc = new MarkovChain("marx");
-//
-//        try (Connection connection = DriverManager.getConnection(MarkovChain.URL)) {
-//            connection.setAutoCommit(false);
-//            mc.readFile("data/marx.txt", connection);
-//            mc.commit(connection);
-//            connection.close();
-//        } catch (SQLException e) {
-//            System.out.println(e.getMessage());
-//        }
-//    }
+    @Test
+    public void testInsert() {
+        MarkovChain mc = new MarkovChain("marx");
+
+        try (Connection connection = DriverManager.getConnection(MarkovChain.URL)) {
+            connection.setAutoCommit(false);
+            mc.readFile("data/marx.txt", connection);
+            mc.commit(connection);
+            connection.close();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
 
     @Test
     public void testSimulate() {
         MarkovChain mc = new MarkovChain("marx");
-        System.out.println(mc.simulate("the", 3));
+        System.out.println(mc.simulate());
 //        System.out.println(mc.simulate("the"));
 //        System.out.println(mc.simulate("the"));
 //        System.out.println(mc.simulate("the"));
