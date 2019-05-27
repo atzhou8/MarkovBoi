@@ -35,35 +35,6 @@ public class SQLiteTest {
         createTransitionsTable(connection);
     }
 
-    private String simulate(int length, Deque<String> initial) {
-        boolean capitalizeNext = true;
-        if (length > 2) {
-            StringBuilder sb = new StringBuilder(MarkovUtils.keyToStringHelper(this, initial, length));
-            String next = "";
-
-            while (length - curr.getOrder() > 0
-                    || (length - curr.getOrder() <= 0 && !MarkovUtils.isEndPunct(next))) {
-                MarkovMatrixRow<String> nextRow = getTransitionMatrix().get(curr);
-                /* ends string construction upon reaching an end state or loop */
-                if (nextRow == null) {
-                    break;
-                }
-                if (length < -20 && !MarkovUtils.isEndPunct(next)) {
-                    sb.append(".");
-                    break;
-                }
-
-                next = nextRow.nextKey();
-                sb.append(MarkovUtils.grammarHelper(this, next));
-                curr = MarkovUtils.nextKeyHelper(curr, next);
-                length--;
-            }
-
-            return sb.toString();
-        } else {
-            throw new IllegalArgumentException("Length too small!");
-        }
-    }
 
     public void readFile(String fileLocation) {
         try {

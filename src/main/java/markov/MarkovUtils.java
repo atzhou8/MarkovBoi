@@ -62,23 +62,7 @@ public class MarkovUtils {
         return isEndPunct(s) || isPausePunct(s);
     }
 
-    /* Helper method to find an initial state given a starting word*/
-    public static MarkovKey getStartFromString(MarkovChain mc, String s) {
-        List<MarkovKey> keyList = new ArrayList();
-        s = s.toLowerCase();
 
-        for (MarkovKey k: mc.getAllKeys()) {
-            if (k.getFirst().equals(s)) {
-                keyList.add(k);
-            }
-        }
-
-        if (keyList.size() == 0) {
-            throw new IllegalArgumentException("Not enough data for starting string. Please try something else!");
-        } else {
-            return keyList.get(random.nextInt(keyList.size()));
-        }
-    }
 
     /* Helper method for correct grammar during sentence construction */
     public static String grammarHelper(MarkovChain mc, String s) {
@@ -95,29 +79,21 @@ public class MarkovUtils {
         return s;
     }
 
-    /* Helper method to convert MarkovKey to a string */
-    public static String keyToStringHelper(MarkovChain mc, MarkovKey k, int length) {
-        String[] s = new String[k.getOrder()];
-        k.getWords().toArray(s);
-        StringBuilder sb = new StringBuilder();
+    /* Helper method to convert state to a string */
+    public static String stateToStringHelper(MarkovChain mc, Deque<String> s) {
+        String[] str = new String[2];
+        s.toArray(str);
 
+        StringBuilder sb = new StringBuilder();
         String next;
         int count = 0;
-        while (count < Math.min(length, s.length)) {
-            next = s[count];
+        while (count < Math.min(2, str.length)) {
+            next = str[count];
             sb.append(grammarHelper(mc, next));
             count++;
         }
 
         return sb.toString();
-    }
-
-    /* Gets the next key to use during sentence construction */
-    public static MarkovKey nextKeyHelper(MarkovKey k, String next) {
-        k.getWords().addLast(next);
-        k.getWords().removeFirst();
-
-        return k;
     }
 
     /* Capitalizes first letter of a string */
@@ -130,28 +106,4 @@ public class MarkovUtils {
         }
     }
 
-    /* Combines the data from two Markov Chains */
-    public static MarkovChain combineChains(MarkovChain mc1, MarkovChain mc2) {
-        if (mc1.getOrder() == mc2.getOrder()) {
-            MarkovChain minMC = (mc1.getSize() < mc2.getSize()) ? mc1 : mc2;
-            MarkovChain maxMC = (minMC == mc1) ? mc2 : mc1;
-
-            for (MarkovKey key : minMC.getAllKeys()) {
-                MarkovMatrixRow<String> maxCounts = maxMC.getTransitionMatrix().get(key);
-                MarkovMatrixRow<String> minCounts = minMC.getTransitionMatrix().get(key);
-
-                if (maxMC.containsKey(key)) {
-                    for (String s : minCounts.keySet()) {
-                        maxCounts.add(s, minCounts.getKeyCount(s));
-                    }
-                } else {
-                    maxMC.addRowToMatrix(key, minCounts);
-                }
-            }
-
-            return maxMC;
-        } else {
-            throw new IllegalArgumentException("Markov chains must be of the same order!");
-        }
-    }
 }

@@ -2,6 +2,10 @@ package markov;
 
 import org.junit.Test;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+
 import static org.junit.Assert.*;
 
 public class TestMarkovChain {
@@ -29,22 +33,32 @@ public class TestMarkovChain {
 //        assertArrayEquals(cleanedMessageD, MarkovUtils.clean(messageD).toArray());
 //
 //    }
-//
 
-    @Test
-    public void testAdd() {
-        MarkovChain mc = new MarkovChain(2, "0");
-        mc.readFile("data/marx.txt");
-    }
 
 //    @Test
-//    public void testSimulate() {
-//        MarkovChain mc = new MarkovChain(2, "0");
-//        mc.readFile("data/plato.txt");
-//        mc.readFile("data/marx.txt");
-//        System.out.println(mc.simulate("Bourgeois"));
-//    }
+//    public void testInsert() {
+//        MarkovChain mc = new MarkovChain("marx");
 //
+//        try (Connection connection = DriverManager.getConnection(MarkovChain.URL)) {
+//            connection.setAutoCommit(false);
+//            mc.readFile("data/marx.txt", connection);
+//            mc.commit(connection);
+//            connection.close();
+//        } catch (SQLException e) {
+//            System.out.println(e.getMessage());
+//        }
+//    }
+
+    @Test
+    public void testSimulate() {
+        MarkovChain mc = new MarkovChain("marx");
+        System.out.println(mc.simulate("the", 3));
+//        System.out.println(mc.simulate("the"));
+//        System.out.println(mc.simulate("the"));
+//        System.out.println(mc.simulate("the"));
+//        System.out.println(mc.simulate("the"));
+    }
+
 //    @Test
 //    public void testDuplicates() {
 //        MarkovChain mc = new MarkovChain(2, "0");
