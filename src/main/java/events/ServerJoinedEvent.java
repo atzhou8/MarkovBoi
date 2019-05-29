@@ -12,11 +12,11 @@
 //    @Override
 //    public void onGuildJoin(GuildJoinEvent event) {
 //        System.out.println("Joined new server!");
-//        Bot.createNewChain(event.getGuild().getId());
 //
+//        try
 //        List<Member> memberList = event.getGuild().getMembers();
 //        for (Member member: memberList) {
-//            Bot.createNewChain(member.getUser().getId());
+//            Bot.createNewChain(member.getUser().getId(), );
 //        }
 //    }
 //}

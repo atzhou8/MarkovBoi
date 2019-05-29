@@ -39,11 +39,11 @@ public class TestMarkovChain {
     public void testInsert() {
         MarkovChain mc = new MarkovChain("marx");
 
-        try (Connection connection = DriverManager.getConnection(MarkovChain.URL)) {
+        try (Connection connection = DriverManager.getConnection(MarkovUtils.URL)) {
             connection.setAutoCommit(false);
-            mc.readFile("data/marx.txt", connection);
-            mc.commit(connection);
-            connection.close();
+            mc.setConnection(connection);
+            mc.readFile("data/marx.txt");
+            connection.commit();
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }

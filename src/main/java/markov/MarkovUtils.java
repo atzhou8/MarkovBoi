@@ -6,6 +6,7 @@ import java.util.*;
 
 public class MarkovUtils {
     private static Random random = new Random();
+    public static final String URL = "jdbc:sqlite:data/data.db";
 
     private static final String[] PUNCT_PAUSE = {",", ";", ":", "(", ")", "\""};
     private static final String[] PUNCT_END = {".", "!", "?"};
