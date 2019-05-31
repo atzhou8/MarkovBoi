@@ -2,3 +2,4 @@
 .gradle
 out/production/classes/bot/Config.class
 src/main/java/bot/Config.java
+data/data.db
