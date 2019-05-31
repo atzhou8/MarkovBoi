@@ -2,6 +2,7 @@ package bot;
 
 import commands.*;
 //import events.ServerJoinedEvent;
+import events.MessageReceivedEvent;
 import markov.MarkovChain;
 import markov.MarkovUtils;
 import net.dv8tion.jda.core.AccountType;
@@ -110,7 +111,7 @@ public class Bot {
     }
 
     private static void addEvents() {
-//        jda.addEventListener(new ServerJoinedEvent());
+        jda.addEventListener(new MessageReceivedEvent());
     }
 
     private static void loadPictures() {
@@ -185,6 +186,8 @@ public class Bot {
         MarkovChain master = getMasterChain();
         MarkovChain chainForID = getChainForID(id);
 
+
+        System.out.println("Reading message" + message);
         if (chainForID == null) {
             return master.readString(message);
         } else {

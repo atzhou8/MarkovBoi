@@ -29,7 +29,7 @@ public class SimulateCommand extends Command {
     public void executeCommand(MessageReceivedEvent event, String[] args) {
         try {
             String id = "master";
-            String start = "";
+            String start = null;
             String name = "everyone";
             String url = null;
             MarkovChain markovChain = Bot.getMasterChain();
@@ -72,7 +72,7 @@ public class SimulateCommand extends Command {
 
     private EmbedBuilder createEmbed(String name, String url, MarkovChain markovChain, String start) {
         EmbedBuilder eb = new EmbedBuilder();
-        if (start == null) {
+        if (start != null) {
             eb.setColor(Color.RED)
                     .setThumbnail(url)
                     .setTitle("Simulated text for " + name + ":")

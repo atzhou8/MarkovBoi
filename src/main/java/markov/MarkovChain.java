@@ -13,8 +13,10 @@ public class MarkovChain {
     private String initialTable;
     private String addTransitionStatement;
     private String addInitialStatement;
-    private String selectTransitionStatement;
-    private String sumTransitionStatement;
+    private String selectTransitionStatement1;
+    private String selectTransitionStatement2;
+    private String sumTransitionStatement1;
+    private String sumTransitionStatement2;
     private String id;
 
     private Deque<String> lastReadState = null;
@@ -38,10 +40,17 @@ public class MarkovChain {
         this.addInitialStatement = "INSERT INTO " + initialTable + " VALUES (?, ?, 6) \n" +
                                    "ON CONFLICT(word1, word2) \n" +
                                    "DO UPDATE SET count = count + 1;";
-        this.selectTransitionStatement = "SELECT * FROM " + transitionTable + " \n" +
-                                         "WHERE prev1 = ? AND prev2 = ?;";
-        this.sumTransitionStatement= "SELECT SUM(count) FROM " + transitionTable + " \n" +
-                                     "WHERE prev1 = ? AND prev2 = ?;";
+
+        this.selectTransitionStatement1 = "SELECT * FROM " + transitionTable + " \n" +
+                                          "WHERE prev2 = ?;";
+        this.sumTransitionStatement1 = "SELECT SUM(count) FROM " + transitionTable + " \n" +
+                                       "WHERE prev2 = ?;";
+
+        this.selectTransitionStatement2 = "SELECT * FROM " + transitionTable + " \n" +
+                                          "WHERE prev1 = ? AND prev2 = ?;";
+        this.sumTransitionStatement2 = "SELECT SUM(count) FROM " + transitionTable + " \n" +
+                                       "WHERE prev1 = ? AND prev2 = ?;";
+
         this.capitalizeNext = true;
         this.random = new Random();
 
@@ -69,10 +78,8 @@ public class MarkovChain {
             return false;
         } else {
             boolean isInitial = true;
-            if (this.lastReadState == null) {
-                this.lastReadState = new ArrayDeque();
-                this.lastReadState.addAll(cleanedString.subList(0, 2));
-            }
+            this.lastReadState = new ArrayDeque();
+            this.lastReadState.addAll(cleanedString.subList(0, 2));
             String next;
             for (int pos = 0; pos < cleanedString.size() - 2; pos++) {
                 /* Get's the next word */
@@ -114,8 +121,10 @@ public class MarkovChain {
         int length = randLength();
         try {
             Connection connection = DriverManager.getConnection(MarkovUtils.URL);
-            PreparedStatement select = connection.prepareStatement(this.selectTransitionStatement);
-            PreparedStatement sum = connection.prepareStatement(this.sumTransitionStatement);
+            PreparedStatement sum1 = connection.prepareStatement(this.sumTransitionStatement1);
+            PreparedStatement select1 = connection.prepareStatement(this.selectTransitionStatement1);
+            PreparedStatement sum2 = connection.prepareStatement(this.sumTransitionStatement2);
+            PreparedStatement select2 = connection.prepareStatement(this.selectTransitionStatement2);
             String res = "";
             String next = "";
 
@@ -124,7 +133,8 @@ public class MarkovChain {
             while (length - 2 > 0
                     || (length - 2 <= 0 && !MarkovUtils.isEndPunct(next))) {
 
-                curr = getNextState(curr, select, sum);
+                Deque<String> nextState = getNextState2(curr, select2, sum2);
+                curr = (nextState == null) ? getNextState1(curr, select1, sum1) : nextState;
 
                 if (curr == null || length < -20 && !MarkovUtils.isEndPunct(curr.getLast())) {
                     res+= ".";
@@ -149,8 +159,10 @@ public class MarkovChain {
         int length = randLength();
         try {
             Connection connection = DriverManager.getConnection(MarkovUtils.URL);
-            PreparedStatement select = connection.prepareStatement(this.selectTransitionStatement);
-            PreparedStatement sum = connection.prepareStatement(this.sumTransitionStatement);
+            PreparedStatement sum1 = connection.prepareStatement(this.sumTransitionStatement1);
+            PreparedStatement select1 = connection.prepareStatement(this.selectTransitionStatement1);
+            PreparedStatement sum2 = connection.prepareStatement(this.sumTransitionStatement2);
+            PreparedStatement select2 = connection.prepareStatement(this.selectTransitionStatement2);
             String res = "";
             String next = "";
 
@@ -159,7 +171,9 @@ public class MarkovChain {
             while (length - 2 > 0
                     || (length - 2 <= 0 && !MarkovUtils.isEndPunct(next))) {
 
-                curr = getNextState(curr, select, sum);
+                Deque<String> nextState = getNextState2(curr, select2, sum2);
+                curr = (nextState == null) ? getNextState1(curr, select1, sum1) : nextState;
+
 
                 if (curr == null || length < -20 && !MarkovUtils.isEndPunct(curr.getLast())) {
                     res+= ".";
@@ -217,11 +231,10 @@ public class MarkovChain {
     private Deque<String> getStartState(Connection connection, String s) {
         try {
             /* queries database for valid initial states */
-            s = s.toLowerCase();
-            String q1 = "SELECT * FROM " + initialTable + " \n" +
-                    "WHERE word1 = ?;";
-            String q2 = "SELECT SUM(count) FROM " + initialTable + " \n" +
-                    "WHERE word1 = ?";
+            String q1 = "SELECT * FROM " + transitionTable + " \n" +
+                    "WHERE prev1 = ?;";
+            String q2 = "SELECT SUM(count) FROM " + transitionTable + " \n" +
+                    "WHERE prev1 = ?";
             PreparedStatement select = connection.prepareStatement(q1);
             PreparedStatement sum = connection.prepareStatement(q2);
             select.setString(1, s);
@@ -239,8 +252,8 @@ public class MarkovChain {
                 while (rs.next()) {
                     cum += (double) (rs.getInt("count")) / (double)total;
                     if (seed <= cum) {
-                        result.addFirst(rs.getString("word1"));
-                        result.addLast(rs.getString("word2"));
+                        result.addFirst(rs.getString("prev1"));
+                        result.addLast(rs.getString("prev2"));
                         return result;
                     }
                 }
@@ -252,14 +265,46 @@ public class MarkovChain {
         throw new IllegalArgumentException("Error occured for starting string. Please try something else!");
     }
 
-    /* Stochastically determines the next state given your current*/
-    private Deque<String> getNextState(Deque<String> current, PreparedStatement selectNext, PreparedStatement sumNext) {
+    /* Stochastically determines the next state given your current and previous state*/
+    private Deque<String> getNextState2(Deque<String> current, PreparedStatement selectNext, PreparedStatement sumNext) {
         try {
             /* queries database for valid initial states */
             selectNext.setString(1, current.getFirst());
             selectNext.setString(2, current.getLast());
             sumNext.setString(1, current.getFirst());
             sumNext.setString(2, current.getLast());
+
+            /* walks through queried data and picks an entry with corresponding probability */
+            int total = sumNext.executeQuery().getInt(1);
+            if (total <= 0) {
+                return null;
+            } else {
+                ResultSet rs = selectNext.executeQuery();
+                double seed = random.nextDouble();
+                double cum = 0;
+                Deque<String> result = new ArrayDeque<>();
+                while (rs.next()) {
+                    cum += (double) (rs.getInt("count")) / (double)total;
+                    if (seed <= cum) {
+                        result.addFirst(current.getLast());
+                        result.addLast(rs.getString("next"));
+                        return result;
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+
+        throw new IllegalArgumentException("Error occured for starting string. Please try something else!");
+    }
+
+    /* Stochastically determines the next state given your current state*/
+    private Deque<String> getNextState1(Deque<String> current, PreparedStatement selectNext, PreparedStatement sumNext) {
+        try {
+            /* queries database for valid initial states */
+            selectNext.setString(1, current.getLast());
+            sumNext.setString(1, current.getLast());
 
             /* walks through queried data and picks an entry with corresponding probability */
             int total = sumNext.executeQuery().getInt(1);

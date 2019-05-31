@@ -12,9 +12,13 @@ import threads.ReadChannelThread;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class ReadCommand extends Command {
+
+    public static Set<ReadChannelThread> threadSet = new HashSet<>();
 
     public ReadCommand() {
         commandName = "read";
@@ -38,7 +42,7 @@ public class ReadCommand extends Command {
         }
 
         ReadChannelThread readChannelThread = new ReadChannelThread(event, channel);
-
+        threadSet.add(readChannelThread);
         readChannelThread.start();
     }
 }
