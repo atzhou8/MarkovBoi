@@ -38,9 +38,10 @@ public class Bot {
         loadPictures();
         addCommands();
         addEvents();
-        System.out.println("Commands and events loaded!");
+        System.out.println("Bot ready!");
     }
 
+    /* Creates JDA instance and initializes member variables */
     private static void initialize() {
         try {
             jda = new JDABuilder(AccountType.BOT)
@@ -55,6 +56,7 @@ public class Bot {
         defaultDataPictures = new HashMap<>();
     }
 
+    /* Loads data into SQLite database */
     private static void initDataToDB() {
         try {
             Connection connection = DriverManager.getConnection(MarkovUtils.URL);
@@ -78,6 +80,7 @@ public class Bot {
         }
     }
 
+    /* Loads ID's for all MC's stored in the SQLite database */
     private static void loadDataFromDB() {
         try (Connection connection = DriverManager.getConnection(MarkovUtils.URL)) {
             ResultSet rs = connection.createStatement().executeQuery("SELECT * FROM idTable");
@@ -92,6 +95,7 @@ public class Bot {
     }
 
 
+    /* Loads all commands for bot */
     private static void addCommands() {
         Command ping = new PingCommand();
         Command read = new ReadCommand();
@@ -110,10 +114,12 @@ public class Bot {
         HelpCommand.addCommand(sim);
     }
 
+    /* Loads all events for bot */
     private static void addEvents() {
         jda.addEventListener(new MessageReceivedEvent());
     }
 
+    /* Loads image locations for default MC's */
     private static void loadPictures() {
         for (int i = 0; i < DEFAULT_DATA_ID_ARRAY.length; i++) {
             defaultDataPictures.put(DEFAULT_DATA_ID_ARRAY[i],
@@ -187,7 +193,7 @@ public class Bot {
         MarkovChain chainForID = getChainForID(id);
 
 
-        System.out.println("Reading message" + message);
+        System.out.println("Reading message: " + message);
         if (chainForID == null) {
             return master.readString(message);
         } else {

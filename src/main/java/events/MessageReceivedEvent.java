@@ -11,12 +11,14 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
+/* Whenever a message is sent, inserts data from message into db.*/
 public class MessageReceivedEvent extends ListenerAdapter {
     private static int count = 0;
 
     @Override
     public void onMessageReceived(net.dv8tion.jda.core.events.message.MessageReceivedEvent event) {
         try {
+            /* Check that all ReadChannelThreads are done */
             if (!event.getAuthor().isBot()) {
                 while (true) {
                     for (ReadChannelThread rc : ReadCommand.threadSet) {

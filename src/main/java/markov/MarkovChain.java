@@ -27,8 +27,8 @@ public class MarkovChain {
     private boolean capitalizeNext;
     private Random random;
 
-    private static final int GENERATION_LENGTH_MIN = 5;
-    private static final int GENERATION_LENGTH_VARIANCE = 3;
+    private static final int GENERATION_LENGTH_MIN = 10;
+    private static final int GENERATION_LENGTH_VARIANCE = 5;
 
     public MarkovChain(String id, Connection connection) {
         this.id = id;
@@ -60,7 +60,17 @@ public class MarkovChain {
         }
     }
 
-    /* Adds a text file to be read */
+    /* Sets the connection that this MC uses to read. Call before readString() and readFile()*/
+    public void setConnection(Connection connection) {
+        try {
+            this.addInitial = connection.prepareStatement(this.addInitialStatement);
+            this.addTransition = connection.prepareStatement(this.addTransitionStatement);
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    /* Reads text file and loads data into db using connection set in setConnection()*/
     public void readFile(String fileLocation) {
         try {
             String text = new String(Files.readAllBytes(Paths.get(fileLocation)), StandardCharsets.UTF_8);
@@ -70,7 +80,7 @@ public class MarkovChain {
         }
     }
 
-    /* Adds a string to be read */
+    /* Reads string and loads data into db using connection set in setConnection()*/
     public boolean readString(String string) {
         List<String> cleanedString = MarkovUtils.clean(string);
         if (cleanedString.size() <= 2
@@ -87,11 +97,11 @@ public class MarkovChain {
 
                 /* Add to initial dist if relevant */
                 if (isInitial && !MarkovUtils.isPunct(this.lastReadState.getFirst())) {
-                    addInitial(this.lastReadState, this.addInitial);
-                    addTransition(this.lastReadState, next, this.addTransition, 1);
+                    addToInitialTable(this.lastReadState, this.addInitial);
+                    addToTransitionTable(this.lastReadState, next, this.addTransition, 1);
                     isInitial = false;
                 } else {
-                    addTransition(this.lastReadState, next, this.addTransition, 1);
+                    addToTransitionTable(this.lastReadState, next, this.addTransition, 1);
                 }
 
                 if (MarkovUtils.isEndPunct(this.lastReadState.getLast())) {
@@ -106,17 +116,8 @@ public class MarkovChain {
         }
     }
 
-    /* Sets the connection that this MC uses to read. Call before readString() and readFile()*/
-    public void setConnection(Connection connection) {
-        try {
-            this.addInitial = connection.prepareStatement(this.addInitialStatement);
-            this.addTransition = connection.prepareStatement(this.addTransitionStatement);
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
-        }
-    }
-
-    /* Simulates a sentence by walking through the MC*/
+    /* Simulates a sentence by walking through the MC. Considers previous state and current state by default,
+     * but also considers just the current state if there is not enough data. */
     public String simulate() {
         int length = randLength();
         try {
@@ -136,7 +137,9 @@ public class MarkovChain {
                 Deque<String> nextState = getNextState2(curr, select2, sum2);
                 curr = (nextState == null) ? getNextState1(curr, select1, sum1) : nextState;
 
-                if (curr == null || length < -20 && !MarkovUtils.isEndPunct(curr.getLast())) {
+                if (curr == null & length > 0) {
+                    curr = getStartState(connection);
+                } else if (curr == null || length < -20 && !MarkovUtils.isEndPunct(curr.getLast())) {
                     res+= ".";
                     break;
                 }
@@ -154,7 +157,7 @@ public class MarkovChain {
         return null;
     }
 
-    /* Simulates a sentence by walking through the MC from a specified starting state*/
+    /* Simulates a sentence by walking through the MC, but chooses a starting state based on a given string */
     public String simulate(String s) {
         int length = randLength();
         try {
@@ -170,12 +173,12 @@ public class MarkovChain {
             res += MarkovUtils.stateToStringHelper(this, curr);
             while (length - 2 > 0
                     || (length - 2 <= 0 && !MarkovUtils.isEndPunct(next))) {
-
                 Deque<String> nextState = getNextState2(curr, select2, sum2);
                 curr = (nextState == null) ? getNextState1(curr, select1, sum1) : nextState;
 
-
-                if (curr == null || length < -20 && !MarkovUtils.isEndPunct(curr.getLast())) {
+                if (curr == null & length > 0) {
+                    curr = getStartState(connection);
+                } else if (curr == null || length < -20 && !MarkovUtils.isEndPunct(curr.getLast())) {
                     res+= ".";
                     break;
                 }
@@ -205,6 +208,7 @@ public class MarkovChain {
             /* walks through queried data and picks an entry with corresponding probability */
             int total = sum.executeQuery().getInt(1);
             if (total <= 0) {
+                connection.close();
                 throw new IllegalArgumentException("Not enough data for simulation. Please try something else!");
             } else {
                 ResultSet rs = select.executeQuery();
@@ -243,6 +247,7 @@ public class MarkovChain {
             /* walks through queried data and picks an entry with corresponding probability */
             int total = sum.executeQuery().getInt(1);
             if (total <= 0) {
+                connection.close();
                 throw new IllegalArgumentException("Not enough data for starting string. Please try something else!");
             } else {
                 ResultSet rs = select.executeQuery();
@@ -265,7 +270,7 @@ public class MarkovChain {
         throw new IllegalArgumentException("Error occured for starting string. Please try something else!");
     }
 
-    /* Stochastically determines the next state given your current and previous state*/
+    /* Stochastically determines the next state given the current and previous state*/
     private Deque<String> getNextState2(Deque<String> current, PreparedStatement selectNext, PreparedStatement sumNext) {
         try {
             /* queries database for valid initial states */
@@ -284,7 +289,7 @@ public class MarkovChain {
                 double cum = 0;
                 Deque<String> result = new ArrayDeque<>();
                 while (rs.next()) {
-                    cum += (double) (rs.getInt("count")) / (double)total;
+                    cum += (double) (rs.getInt("count")) / (double) total;
                     if (seed <= cum) {
                         result.addFirst(current.getLast());
                         result.addLast(rs.getString("next"));
@@ -299,7 +304,7 @@ public class MarkovChain {
         throw new IllegalArgumentException("Error occured for starting string. Please try something else!");
     }
 
-    /* Stochastically determines the next state given your current state*/
+    /* Stochastically determines the next state given just the current state*/
     private Deque<String> getNextState1(Deque<String> current, PreparedStatement selectNext, PreparedStatement sumNext) {
         try {
             /* queries database for valid initial states */
@@ -332,7 +337,7 @@ public class MarkovChain {
     }
 
     /* Helper method to add a state to initial table */
-    private void addInitial(Deque<String> words, PreparedStatement stmt) {
+    private void addToInitialTable(Deque<String> words, PreparedStatement stmt) {
         try {
             stmt.setString(1, words.getFirst());
             stmt.setString(2, words.getLast());
@@ -343,7 +348,7 @@ public class MarkovChain {
     }
 
     /* Helper method to add a state to transition table */
-    private void addTransition(Deque<String> words, String next, PreparedStatement stmt, int count) {
+    private void addToTransitionTable(Deque<String> words, String next, PreparedStatement stmt, int count) {
         try {
             stmt.setString(1, words.getFirst());
             stmt.setString(2, words.getLast());
@@ -390,7 +395,7 @@ public class MarkovChain {
         }
     }
 
-    /* Helper method to get table names from ID */
+    /* Helper method to get table names from ID. Appends id to name */
     private String getTableName(String name) {
         return name + "_" + id;
     }

@@ -11,6 +11,7 @@ import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import java.awt.*;
 import java.util.List;
 
+/* Simulates some text using data from the db */
 public class SimulateCommand extends Command {
 
     public SimulateCommand() {
@@ -21,7 +22,8 @@ public class SimulateCommand extends Command {
                 "marx\n" +
                 "plato\n" +
                 "master\n\n" +
-                "If you are seeing this message, it may be because your starting word does not exist.";
+                "If you are seeing this message, after calling !sim, there is probably something wrong with your parameters, " +
+                "or there isn't enough data for your starting word.";
         helpMessage = "Generates text based on read data";
     }
 

@@ -8,6 +8,7 @@ import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
 
+/** Sends an embedded message with a list of commmands and their usage. */
 public class HelpCommand extends Command {
 
     private static Map<String, Command> commands = new HashMap();
