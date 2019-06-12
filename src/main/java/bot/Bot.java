@@ -58,8 +58,9 @@ public class Bot {
 
     /* Loads data into SQLite database */
     private static void initDataToDB() {
+        Connection connection = null;
         try {
-            Connection connection = DriverManager.getConnection(MarkovUtils.URL);
+            connection = DriverManager.getConnection(MarkovUtils.URL);
             connection.setAutoCommit(false);
             connection.createStatement().execute("CREATE TABLE IF NOT EXISTS idTable (id TEXT);");
 
@@ -77,12 +78,18 @@ public class Bot {
             connection.commit();
         } catch (SQLException e) {
             System.out.println(e.getMessage());
+        } finally {
+            try {
+                connection.close();
+            } catch (SQLException e) {}
         }
     }
 
     /* Loads ID's for all MC's stored in the SQLite database */
     private static void loadDataFromDB() {
-        try (Connection connection = DriverManager.getConnection(MarkovUtils.URL)) {
+        Connection connection = null;
+        try {
+            connection = DriverManager.getConnection(MarkovUtils.URL);
             ResultSet rs = connection.createStatement().executeQuery("SELECT * FROM idTable");
             connection.setAutoCommit(false);
             while (rs.next()) {
@@ -91,6 +98,10 @@ public class Bot {
             connection.commit();
         } catch (SQLException e) {
 
+        } finally {
+            try {
+                connection.close();
+            } catch (SQLException e) {}
         }
     }
 

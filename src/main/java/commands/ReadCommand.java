@@ -31,9 +31,9 @@ public class ReadCommand extends Command {
     @Override
     public void executeCommand(MessageReceivedEvent event, String[] args) {
         Channel channel = event.getTextChannel();
-
+        Connection connection = null;
         try {
-            Connection connection = DriverManager.getConnection(MarkovUtils.URL);
+            connection = DriverManager.getConnection(MarkovUtils.URL);
             List<Member> memberList = event.getGuild().getMembers();
             for (Member member: memberList) {
                 Bot.createNewChain(member.getUser().getId(), connection);
@@ -41,6 +41,10 @@ public class ReadCommand extends Command {
             connection.close();
         } catch (SQLException e) {
             ((TextChannel) channel).sendMessage(e.getMessage());
+        } finally {
+            try{
+                connection.close();
+            } catch (SQLException e) {}
         }
 
         ReadChannelThread readChannelThread = new ReadChannelThread(event, channel);

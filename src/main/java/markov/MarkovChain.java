@@ -120,8 +120,9 @@ public class MarkovChain {
      * but also considers just the current state if there is not enough data. */
     public String simulate() {
         int length = randLength();
+        Connection connection = null;
         try {
-            Connection connection = DriverManager.getConnection(MarkovUtils.URL);
+            connection = DriverManager.getConnection(MarkovUtils.URL);
             PreparedStatement sum1 = connection.prepareStatement(this.sumTransitionStatement1);
             PreparedStatement select1 = connection.prepareStatement(this.selectTransitionStatement1);
             PreparedStatement sum2 = connection.prepareStatement(this.sumTransitionStatement2);
@@ -152,6 +153,10 @@ public class MarkovChain {
             return res;
         } catch (SQLException e) {
             System.out.println(e.getMessage());
+        } finally {
+            try{
+                connection.close();
+            } catch (SQLException e) {}
         }
 
         return null;
@@ -160,8 +165,9 @@ public class MarkovChain {
     /* Simulates a sentence by walking through the MC, but chooses a starting state based on a given string */
     public String simulate(String s) {
         int length = randLength();
+        Connection connection = null;
         try {
-            Connection connection = DriverManager.getConnection(MarkovUtils.URL);
+            connection = DriverManager.getConnection(MarkovUtils.URL);
             PreparedStatement sum1 = connection.prepareStatement(this.sumTransitionStatement1);
             PreparedStatement select1 = connection.prepareStatement(this.selectTransitionStatement1);
             PreparedStatement sum2 = connection.prepareStatement(this.sumTransitionStatement2);
@@ -191,6 +197,10 @@ public class MarkovChain {
             return res;
         } catch (SQLException e) {
             System.out.println(e.getMessage());
+        } finally {
+            try{
+                connection.close();
+            } catch (SQLException e) {}
         }
 
         return null;
