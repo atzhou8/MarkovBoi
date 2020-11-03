@@ -38,7 +38,6 @@ public class ReadCommand extends Command {
             for (Member member: memberList) {
                 Bot.createNewChain(member.getUser().getId(), connection);
             }
-            connection.close();
         } catch (SQLException e) {
             ((TextChannel) channel).sendMessage(e.getMessage());
         } finally {

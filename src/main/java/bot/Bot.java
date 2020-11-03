@@ -2,7 +2,7 @@ package bot;
 
 import commands.*;
 //import events.ServerJoinedEvent;
-import events.MessageReceivedEvent;
+import events.MessageListener;
 import markov.MarkovChain;
 import markov.MarkovUtils;
 import net.dv8tion.jda.core.AccountType;
@@ -109,25 +109,25 @@ public class Bot {
     /* Loads all commands for bot */
     private static void addCommands() {
         Command ping = new PingCommand();
-        Command read = new ReadCommand();
+//        Command read = new ReadCommand();
         Command sim = new SimulateCommand();
         Command help = new HelpCommand();
         Command guilds = new GetGuildsCommand();
 
         jda.addEventListener(ping);
-        jda.addEventListener(read);
+//        jda.addEventListener(read);
         jda.addEventListener(sim);
         jda.addEventListener(help);
         jda.addEventListener(guilds);
 
         HelpCommand.addCommand(ping);
-        HelpCommand.addCommand(read);
+//        HelpCommand.addCommand(read);
         HelpCommand.addCommand(sim);
     }
 
     /* Loads all events for bot */
     private static void addEvents() {
-        jda.addEventListener(new MessageReceivedEvent());
+        jda.addEventListener(new MessageListener());
     }
 
     /* Loads image locations for default MC's */
@@ -204,7 +204,7 @@ public class Bot {
         MarkovChain chainForID = getChainForID(id);
 
 
-        System.out.println("Reading message: " + message);
+//        System.out.println("Reading message: " + message);
         if (chainForID == null) {
             return master.readString(message);
         } else {

@@ -183,6 +183,7 @@ public class MarkovChain {
                 curr = (nextState == null) ? getNextState1(curr, select1, sum1) : nextState;
 
                 if (curr == null & length > 0) {
+                    res += ".";
                     curr = getStartState(connection);
                 } else if (curr == null || length < -20 && !MarkovUtils.isEndPunct(curr.getLast())) {
                     res+= ".";
@@ -192,7 +193,6 @@ public class MarkovChain {
                 res += MarkovUtils.grammarHelper(this, next);
                 length--;
             }
-            connection.close();
             setCapitalizeNext(true);
             return res;
         } catch (SQLException e) {

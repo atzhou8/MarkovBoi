@@ -35,7 +35,6 @@ public class SimulateCommand extends Command {
             String name = "everyone";
             String url = null;
             MarkovChain markovChain = Bot.getMasterChain();
-
             switch (args.length) {
                 case 3:
                     start = args[2];
