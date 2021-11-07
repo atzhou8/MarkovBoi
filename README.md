@@ -1,8 +1,6 @@
 # MarkovBoi
 A Discord bot that uses second-order Markov Chains to simulate sentences, created using the [Java Discord API](https://github.com/DV8FromTheWorld/JDA). Markov chains are constructed for every user in order to mimic specific people, alongside a "master" chain that contains messages sent by everybody. In addition, the bot also has access writings/speeches of several historical figures, from which it can also simulate text.
 
-[Invite link here](https://discordapp.com/api/oauth2/authorize?client_id=420723766008610826&permissions=0&scope=bot). 
-
 ## Commands
 `!help` -> Provides a list of commands. Type `!help <commandName>` to see more specific usage information for a particular command
 
